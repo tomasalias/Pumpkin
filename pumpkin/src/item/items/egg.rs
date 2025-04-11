@@ -32,10 +32,10 @@ impl PumpkinItem for EggItem {
             .await;
         // TODO: Implement eggs the right way, so there is a chance of spawning chickens
         let entity = world.create_entity(position, EntityType::EGG);
-        let snowball = ThrownItemEntity::new(entity, &player.living_entity.entity);
+        let egg = ThrownItemEntity::new(entity, &player.living_entity.entity);
         let yaw = player.living_entity.entity.yaw.load();
         let pitch = player.living_entity.entity.pitch.load();
-        snowball.set_velocity_from(&player.living_entity.entity, pitch, yaw, 0.0, POWER, 1.0);
-        world.spawn_entity(Arc::new(snowball)).await;
+        egg.set_velocity_from(&player.living_entity.entity, pitch, yaw, 0.0, POWER, 1.0);
+        world.spawn_entity(Arc::new(egg)).await;
     }
 }
