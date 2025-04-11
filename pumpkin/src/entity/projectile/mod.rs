@@ -73,6 +73,24 @@ impl ThrownItemEntity {
             velocity.y.atan2(len) as f32 * 57.295_776,
         );
     }
+
+    pub async fn check_collision(&self) {
+        let pos = self.entity.pos.load();
+        let block_pos = self.entity.block_pos.load();
+        let world = self.entity.world.read().await;
+
+        if let Ok(block) = world.get_block(&block_pos).await {
+            if !block.air {
+                self.break_projectile().await;
+            }
+        }
+    }
+
+    pub async fn break_projectile(&self) {
+        // Handle breaking the projectile and performing expected behavior
+        // For example, spawning a chicken for eggs or dealing damage for snowballs
+        self.entity.remove().await;
+    }
 }
 
 #[async_trait]
@@ -87,5 +105,10 @@ impl EntityBase for ThrownItemEntity {
 
     fn get_living_entity(&self) -> Option<&LivingEntity> {
         None
+    }
+
+    async fn tick(&self, server: &Server) {
+        self.get_entity().tick(server).await;
+        self.check_collision().await;
     }
 }
