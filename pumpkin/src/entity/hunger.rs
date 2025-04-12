@@ -3,6 +3,7 @@ use async_trait::async_trait;
 use crossbeam::atomic::AtomicCell;
 use pumpkin_data::damage::DamageType;
 use pumpkin_nbt::compound::NbtCompound;
+use pumpkin_data::item::Item;
 
 // TODO: This entire thing should be atomic, not individual fields
 pub struct HungerManager {
@@ -63,6 +64,17 @@ impl HungerManager {
     pub fn add_exhausten(&self, exhaustion: f32) {
         self.exhaustion
             .store((self.exhaustion.load() + exhaustion).min(40.0));
+    }
+
+    pub async fn consume_food(&self, item: &Item) {
+        let food_value = item.food_value.unwrap_or(0);
+        let saturation_value = item.saturation_value.unwrap_or(0.0);
+
+        let new_level = (self.level.load() as i32 + food_value).min(20) as u8;
+        self.level.store(new_level);
+
+        let new_saturation = (self.saturation.load() + saturation_value).min(new_level as f32);
+        self.saturation.store(new_saturation);
     }
 }
 

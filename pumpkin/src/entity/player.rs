@@ -65,7 +65,7 @@ use pumpkin_protocol::{
         SClientTickEnd, SCommandSuggestion, SConfirmTeleport, SInteract, SPickItemFromBlock,
         SPlayerAbilities, SPlayerAction, SPlayerCommand, SPlayerInput, SPlayerPosition,
         SPlayerPositionRotation, SPlayerRotation, SPlayerSession, SSetCreativeSlot, SSetHeldItem,
-        SSetPlayerGround, SSwingArm, SUpdateSign, SUseItem, SUseItemOn,
+        SSwingArm, SUpdateSign, SUseItem, SUseItemOn,
     },
 };
 use pumpkin_protocol::{
@@ -1410,6 +1410,22 @@ impl Player {
                 self.inventory.lock().await.selected as i8,
             ))
             .await;
+    }
+
+    pub async fn eat(&self, item: &Item) {
+        if self.hunger_manager.level.load() < 20 {
+            self.hunger_manager.consume_food(item).await;
+            self.play_sound(
+                Sound::EntityPlayerBurp as u16,
+                SoundCategory::Players,
+                &self.position(),
+                1.0,
+                1.0,
+                0.0,
+            )
+            .await;
+            self.send_health().await;
+        }
     }
 }
 

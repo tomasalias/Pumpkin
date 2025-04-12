@@ -3,6 +3,7 @@ mod hoe;
 mod snowball;
 mod sword;
 mod trident;
+mod food;
 
 use std::sync::Arc;
 
@@ -11,6 +12,7 @@ use hoe::HoeItem;
 use snowball::SnowBallItem;
 use sword::SwordItem;
 use trident::TridentItem;
+use food::FoodItem;
 
 use super::registry::ItemRegistry;
 #[must_use]
@@ -22,6 +24,7 @@ pub fn default_registry() -> Arc<ItemRegistry> {
     manager.register(EggItem);
     manager.register(SwordItem);
     manager.register(TridentItem);
+    manager.register(FoodItem);
 
     Arc::new(manager)
 }
