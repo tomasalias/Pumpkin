@@ -5,6 +5,7 @@ use pumpkin_data::Block;
 use pumpkin_data::BlockDirection;
 use pumpkin_data::item::Item;
 use pumpkin_util::math::position::BlockPos;
+use pumpkin_world::item::ItemStack;
 
 pub trait ItemMetadata {
     fn ids() -> Box<[u16]>;
@@ -27,5 +28,12 @@ pub trait PumpkinItem: Send + Sync {
 
     fn can_mine(&self, _player: &Player) -> bool {
         true
+    }
+
+    async fn post_mine(&self,
+        _stack: &ItemStack,
+        _block: &Item, 
+        _player: &Player) {
+        
     }
 }

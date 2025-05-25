@@ -27,6 +27,8 @@ pub struct ItemComponents {
     pub max_damage: Option<u16>,
     #[serde(rename = "minecraft:attribute_modifiers")]
     pub attribute_modifiers: Option<Vec<Modifier>>,
+    #[serde(rename = "minecraft:break_sound")]
+    pub break_sound: Option<String>,
     #[serde(rename = "minecraft:tool")]
     pub tool: Option<ToolComponent>,
     #[serde(rename = "minecraft:food")]
@@ -48,6 +50,15 @@ impl ToTokens for ItemComponents {
             let text = self.item_name.clone().get_text();
             let item_name = LitStr::new(&text, Span::call_site());
             quote! { #item_name }
+        };
+
+        let break_sound = match self.break_sound.clone() {
+            Some(text) => {
+                let text = text.replace("minecraft:", "");
+                let break_sound = LitStr::new(&text, Span::call_site());
+                quote! { Some(#break_sound) }
+            }
+            None => quote! { None },
         };
 
         let damage = match self.damage {
@@ -171,6 +182,7 @@ impl ToTokens for ItemComponents {
         tokens.extend(quote! {
             ItemComponents {
                 item_name: #item_name,
+                break_sound: #break_sound,
                 max_stack_size: #max_stack_size,
                 jukebox_playable: #jukebox_playable,
                 damage: #damage,
@@ -279,6 +291,7 @@ pub(crate) fn build() -> TokenStream {
         #[derive(Clone, Copy, Debug)]
         pub struct ItemComponents {
             pub item_name: &'static str,
+            pub break_sound: Option<&'static str>,
             pub max_stack_size: u8,
             pub jukebox_playable: Option<&'static str>,
             pub damage: Option<u16>,
@@ -286,6 +299,23 @@ pub(crate) fn build() -> TokenStream {
             pub attribute_modifiers: Option<&'static [Modifier]>,
             pub tool: Option<ToolComponent>,
             pub food: Option<FoodComponent>
+        }
+
+        impl ItemComponents {
+            pub fn contains(&self, key: &str) -> bool {
+                match key {
+                    "item_name" => true,
+                    "break_sound" => self.break_sound.is_some(),
+                    "max_stack_size" => true,
+                    "jukebox_playable" => self.jukebox_playable.is_some(),
+                    "damage" => self.damage.is_some(),
+                    "max_damage" => self.max_damage.is_some(),
+                    "attribute_modifiers" => self.attribute_modifiers.is_some(),
+                    "tool" => self.tool.is_some(),
+                    "food" => self.food.is_some(),
+                    _ => false,
+                }
+            }
         }
 
         #[derive(Clone, Copy, Debug)]

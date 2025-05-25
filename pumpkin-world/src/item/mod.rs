@@ -1,9 +1,11 @@
+use constants::{DAMAGE, MAX_DAMAGE};
 use pumpkin_data::item::Item;
 use pumpkin_data::tag::{RegistryKey, get_tag_values};
 use pumpkin_nbt::compound::NbtCompound;
 use std::hash::Hash;
 
 mod categories;
+mod constants;
 
 #[derive(serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -43,6 +45,45 @@ impl ItemStack {
 
     pub fn new(item_count: u8, item: &'static Item) -> Self {
         Self { item_count, item: item.clone() }
+    }
+
+    pub fn damage_item(&mut self) {
+        let components = &mut self.item.components;
+
+        if let (Some(_damage), Some(_max_damage)) = (components.damage, components.max_damage) {
+            if _max_damage == 0 {
+                return;
+            }
+
+            // TODO: we probably have to consider the unbreakable enchantment here
+            if _damage >= _max_damage {
+                return;
+            }
+
+            components.damage = Some(_damage + 1);
+        }
+    }
+
+    pub fn is_broken(&self) -> bool {
+        self.is_damageable() && self.get_damage() >= self.get_max_damage()
+    }
+
+    pub fn is_damageable(&self) -> bool {
+        let components = self.item.components;
+
+        components.contains(DAMAGE) && components.contains(MAX_DAMAGE)
+    }
+
+    pub fn is_damaged(&self) -> bool {
+        self.is_damageable() && self.item.components.damage.unwrap() > 0
+    }
+
+    pub fn get_damage(&self) -> u16 {
+        self.item.components.damage.unwrap_or_default()
+    }
+
+    pub fn get_max_damage(&self) -> u16 {
+        self.item.components.max_damage.unwrap_or_default()
     }
 
     pub fn get_max_stack_size(&self) -> u8 {
@@ -174,11 +215,17 @@ impl ItemStack {
         compound.put_int("count", self.item_count as i32);
 
         // Create a tag compound for additional data
-        let tag = NbtCompound::new();
+        let mut tag = NbtCompound::new();
 
-        // TODO: Store custom data like enchantments, display name, etc. would go here
+        // TODO: Store custom data like enchantments, display name, etc.
+        if let Some(damage) = self.item.components.damage {
+            tag.put_int("damage", damage as i32);
+        }
 
-        // Store custom data like enchantments, display name, etc. would go here
+        if let Some(max_damage) = self.item.components.max_damage {
+            tag.put_int("max_damage", max_damage as i32);
+        }
+
         compound.put_component("components", tag);
     }
 
@@ -189,17 +236,23 @@ impl ItemStack {
         // Remove the "minecraft:" prefix if present
         let registry_key = full_id.strip_prefix("minecraft:").unwrap_or(full_id);
 
-        // Try to get item by registry key
         let item = Item::from_registry_key(registry_key)?;
 
         let count = compound.get_int("count")? as u8;
 
-        // Create the item stack
-        let item_stack = Self::new(count, item);
+        let mut item_stack = Self::new(count, item);
 
-        // Process any additional data in the components compound
+        let item = &mut item_stack.item;
+
+        // TODO: Process additional components like damage, enchantments, etc.
         if let Some(_tag) = compound.get_compound("components") {
-            // TODO: Process additional components like damage, enchantments, etc.
+            if let Some(_damage) = _tag.get_int("damage") {
+                item.components.damage = Some(_damage as u16);
+            }
+
+            if let Some(_max_damage) = _tag.get_int("max_damage") {
+                item.components.max_damage = Some(_max_damage as u16);
+            }
         }
 
         Some(item_stack)
