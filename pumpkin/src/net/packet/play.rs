@@ -1129,7 +1129,7 @@ impl Player {
 
                     let inventory = self.inventory();
                     let held = inventory.held_item();
-                    if !server.item_registry.can_mine(held.lock().await.item, self) {
+                    if !server.item_registry.can_mine(&held.lock().await.item, self) {
                         self.client
                             .enqueue_packet(&CBlockUpdate::new(
                                 location,
@@ -1365,7 +1365,7 @@ impl Player {
             server
                 .item_registry
                 .use_on_block(
-                    held_item.lock().await.item,
+                    &held_item.lock().await.item,
                     self,
                     location,
                     face,
@@ -1379,7 +1379,7 @@ impl Player {
             drop(item_stack);
             let action_result = server
                 .block_registry
-                .use_with_item(&block, self, location, item, server, world)
+                .use_with_item(&block, self, location, &item, server, world)
                 .await;
             match action_result {
                 BlockActionResult::Continue => {}
@@ -1436,7 +1436,7 @@ impl Player {
         let inventory = self.inventory();
         let binding = inventory.held_item();
         let held = binding.lock().await;
-        server.item_registry.on_use(held.item, self).await;
+        server.item_registry.on_use(&held.item, self).await;
     }
 
     pub async fn handle_set_held_item(&self, held: SSetHeldItem) {

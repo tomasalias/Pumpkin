@@ -18,7 +18,7 @@ pub enum Rarity {
 #[derive(Clone, Debug, Copy)]
 pub struct ItemStack {
     pub item_count: u8,
-    pub item: &'static Item,
+    pub item: Item,
 }
 
 impl Hash for ItemStack {
@@ -38,11 +38,11 @@ impl PartialEq for ItemStack {
 impl ItemStack {
     pub const EMPTY: ItemStack = ItemStack {
         item_count: 0,
-        item: &Item::AIR,
+        item: Item::AIR,
     };
 
     pub fn new(item_count: u8, item: &'static Item) -> Self {
-        Self { item_count, item }
+        Self { item_count, item: item.clone() }
     }
 
     pub fn get_max_stack_size(&self) -> u8 {
@@ -53,7 +53,7 @@ impl ItemStack {
         if self.is_empty() {
             &Item::AIR
         } else {
-            self.item
+            &self.item
         }
     }
 
