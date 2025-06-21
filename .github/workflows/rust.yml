@@ -65,7 +65,7 @@ jobs:
         with:
           name: pumpkin-${{ matrix.os }}
           compression-level: 9
-          path: target/${{ matrix.target }}/release/pumpkin*
+          path: target/release/pumpkin*
   clippy_release:
     name: Run lints in release mode
     runs-on: ubuntu-latest
