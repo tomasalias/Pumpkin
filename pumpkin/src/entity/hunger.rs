@@ -2,6 +2,7 @@ use super::{EntityBase, NBTStorage, player::Player};
 use async_trait::async_trait;
 use crossbeam::atomic::AtomicCell;
 use pumpkin_data::damage::DamageType;
+use pumpkin_data::entity::EffectType;
 use pumpkin_nbt::compound::NbtCompound;
 use pumpkin_util::Difficulty;
 
@@ -33,6 +34,18 @@ impl HungerManager {
         let exhaustion = self.exhaustion.load();
         let health = player.living_entity.health.load();
         let difficulty = player.world().await.level_info.read().await.difficulty;
+
+        // Handle hunger effect
+        if player.living_entity.has_effect(EffectType::Hunger).await {
+            if let Some(hunger_effect) = player.living_entity.get_effect(EffectType::Hunger).await {
+                // Hunger effect adds exhaustion over time
+                // The higher the amplifier, the faster the hunger depletes
+                let amplifier = f32::from(hunger_effect.amplifier);
+                let hunger_exhaustion = 0.1 * (amplifier + 1.0); // Base exhaustion per tick
+                self.add_exhaustion(hunger_exhaustion);
+            }
+        }
+
         // Decrease hunger level on exhaustion
         if level != 0 && exhaustion > 4.0 {
             self.exhaustion.store(exhaustion - 4.0);
@@ -80,6 +93,22 @@ impl HungerManager {
     pub fn add_exhaustion(&self, exhaustion: f32) {
         self.exhaustion
             .store((self.exhaustion.load() + exhaustion).min(40.0));
+    }
+
+    /// Add food and saturation to the player
+    pub fn feed(&self, nutrition: u8, saturation_modifier: f32) {
+        // Restore hunger points
+        let current_hunger = self.level.load();
+        let new_hunger = (current_hunger + nutrition).min(20);
+        self.level.store(new_hunger);
+
+        // Calculate and apply saturation
+        // Saturation is calculated as min(saturation_modifier, current_hunger * 2)
+        let current_saturation = self.saturation.load();
+        let saturation_to_add =
+            saturation_modifier.min(f32::from(new_hunger) * 2.0 - current_saturation);
+        let new_saturation = (current_saturation + saturation_to_add).min(f32::from(new_hunger));
+        self.saturation.store(new_saturation);
     }
 }
 
