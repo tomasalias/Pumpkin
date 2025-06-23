@@ -16,7 +16,6 @@ use axe::AxeItem;
 use bucket::{EmptyBucketItem, FilledBucketItem};
 use egg::EggItem;
 use ender_eye::EnderEyeItem;
-use flint_and_steel::FlintAndSteelItem;
 use food::FoodItem;
 use hoe::HoeItem;
 use honeycomb::HoneyCombItem;
