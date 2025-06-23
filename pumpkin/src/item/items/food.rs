@@ -66,17 +66,7 @@ impl PumpkinItem for FoodItem {
 }
 
 impl FoodItem {
-    /// Check if the player can consume this food item
-    pub async fn _can_consume(&self, item: &Item, player: &Player) -> bool {
-        if let Some(food) = &item.components.food {
-            food.can_always_eat.unwrap_or(false) || player.hunger_manager.level.load() < 20
-        } else {
-            false
-        }
-    }
-
-    /// Get the time it takes to eat this food item
-    pub fn _get_eat_time(&self, _item: &Item) -> Duration {
+    pub fn _get_eat_time(_item: &Item) -> Duration {
         // Default eating time is 1.6 seconds (32 ticks)
         Duration::from_millis(1600)
     }
@@ -100,7 +90,7 @@ impl FoodItem {
         Self::finish_eating(item, player).await;
     }
 
-    /// Set the player in eating state with the specified item and duration  
+    /// Set the player in eating state with the specified item and duration
     /// TODO: Implement proper eating animation with timer
     pub async fn _set_eating(&self, item: &Item, player: &Player, _duration: Duration) {
         // Set entity metadata to show eating animation
