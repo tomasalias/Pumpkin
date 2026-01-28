@@ -676,8 +676,8 @@ impl Player {
                 damage as f32,
                 DamageType::PLAYER_ATTACK,
                 None,
-                Some(&self.living_entity.entity),
-                Some(&self.living_entity.entity),
+                Some(self),
+                Some(self),
             )
             .await
         {
